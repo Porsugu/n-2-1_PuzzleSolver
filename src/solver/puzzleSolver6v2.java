@@ -18,11 +18,11 @@ public class puzzleSolver6v2 {
     public HashMap<Integer,int[]> indexToRC=new HashMap<>();
     public HashMap<Integer,HashSet<String>> rowToTile=new HashMap<>(),colToTile=new HashMap<>();
     private int dimension,boundRC,size,workingPriority,jump,numBoardLength,maxFixedRow,maxFixedCol,boundDBtask,workingIndex,tileLeft,stepUsed,maxManhattan,maxDigit;
-    private Boolean goSolveRow,goSolveCol,show;
+    private Boolean goSolveRow,goSolveCol,show,solvedNewR,solvedNewC,firstRC;
     private Boolean putLargeDownRight,putLessToCorner,LargeToLess,FinalManhattan,addGate,solved;
     List<String>[] rowTask,colTask;
     Queue<String> rowToDoList=new LinkedList<>(),colToDoList=new LinkedList<>();
-    HashSet<String> doneTile=new HashSet<>();
+    HashSet<String> doneTile=new HashSet<>(),nearestRCTile=new HashSet<>();
     String[] concernTile= new String[2];
 
     // Constructor
@@ -358,6 +358,7 @@ public class puzzleSolver6v2 {
                                         goSolveRow=true;
                                         //System.out.println("pre maxFixedCol: "+this.maxFixedCol);
                                         this.maxFixedCol++;
+                                        this.solvedNewC=true;
                                         workingIndex=this.maxFixedCol+1;
                                         while(this.doneTile.contains(concernTile[0])){
                                             concernTile[0]=this.rowToDoList.remove();
@@ -367,12 +368,34 @@ public class puzzleSolver6v2 {
                                         goSolveRow=false;
                                         goSolveCol=true;
                                         this.maxFixedRow++;
+                                        this.solvedNewR=true;
                                         workingIndex=this.maxFixedRow+1;
                                         while(this.doneTile.contains(concernTile[0])){
                                             concernTile[0]=this.colToDoList.remove();
                                         }
                                     }
                                 }
+                                if(solvedNewR && solvedNewC){
+                                    solvedNewR=false;
+                                    solvedNewC=false;
+                                    HashSet<String> temp=new HashSet<>();
+                                    for(String tile: this.doneTile){
+                                        if(!this.nearestRCTile.contains(tile)){
+                                            temp.add(tile);
+                                        }
+                                    }
+                                    this.nearestRCTile.clear();
+                                    this.nearestRCTile=temp;
+
+                                }
+                                if(!firstRC){
+                                    this.doneTile.clear();
+                                    this.doneTile=nearestRCTile;
+                                }else{
+                                    firstRC=true;
+                                }
+
+
                                 if(this.show){
                                     System.out.println("---------------------------"+"\n");
                                     System.out.println("Step4 is done:"+"|"+tileBuffer+"| and |"+this.concernTile[1]+"| have been placed in correct position");
@@ -723,8 +746,10 @@ public class puzzleSolver6v2 {
     //You don't wanna read and I don't wanna explain
     private void JustaBitOfInitialSetUp(String filename,Boolean showRunningInfo) throws IOException{
         tools tools=new tools();
+        this.firstRC=true;
         this.solved=false;
-        //puzzleDriver p1 = new puzzleDriver(filename); // bad board--> exception
+        this.solvedNewR=false;
+        this.solvedNewC = false;
         HiDimPuzzleDriver p1=new HiDimPuzzleDriver(filename);
         int[][]tempArr=p1.toArray();
         this.dimension = p1.getDimension();
