@@ -1,25 +1,25 @@
 import answerChecker.checkDriver;
 import answerChecker.statCollector;
 import solver.*;
-import java.io.IOException;
-import java.util.*;
 
-public class Main {
-    public static void main(String[] args) throws IOException, BadBoardException {
+import java.io.IOException;
+
+public class TestSubmission {
+    public static void main(String[] args) throws BadBoardException, IOException {
         if(true){
             statCollector s=new statCollector();
             long start,end;
             String fileName;
-            for(int k=10;k<=40;k++){
+            for(int k=1;k<=40;k++){
                 fileName="board";
                 if(k<10){
                     fileName+=0;
                 }
                 fileName+=(k+".txt");
                 start=System.currentTimeMillis();
-                puzzleSolver6v2 solver = new puzzleSolver6v2(fileName,"sol"+fileName.substring(5),false);
+                puzzleSolverSubmission solver = new puzzleSolverSubmission(fileName,"sol"+fileName.substring(5));
                 end=System.currentTimeMillis();
-                HiDimPuzzleDriver puzzle=new HiDimPuzzleDriver(fileName);
+                puzzleDriver puzzle=new puzzleDriver(fileName);
                 checkDriver check=new checkDriver(puzzle.toArray(),solver.getSolution(),false);
                 // dimension, runtime,filename, isValid, stepUsed
                 s.add(solver.getDimension(), end-start,fileName,check.ansChecker(),solver.getStepUsed());
@@ -38,10 +38,6 @@ public class Main {
             System.out.println("Num of steps: "+ solver.getStepUsed());
             System.out.println("runtime: "+(end-start)/1000F +" sec");
         }
-//        String board="board15.txt";
-//        long start=System.currentTimeMillis();
-//        puzzleSolver5 solver=new puzzleSolver5(board);
-//        long end=System.currentTimeMillis();
-//        System.out.println("runtime: "+(end-start)/1000F +" sec");
     }
+
 }
