@@ -115,38 +115,38 @@ public class puzzleSolver6v2 {
 //            return;
 //        }
         Boolean conditionToAdd=false;
-        int tileIndex=0,bound=this.dimension - 1;
+        int tileIndex=0;
         int currentZero = Integer.parseInt(current.substring(this.numBoardLength)),
                 newZero;
         int[] currentCoordinate=this.indexToCorrectRC.get(currentZero);
-        String tileTomove="",board = current,newBoard;
-        if((currentCoordinate[0] < bound) && MoveDir=='U'){
+        String tileTomove="",newBoard;
+        if((currentCoordinate[0] < this.boundRC) && MoveDir=='U'){
             tileIndex=currentZero+this.jump;
-            tileTomove=board.substring(tileIndex,tileIndex+this.maxDigit);
+            tileTomove=current.substring(tileIndex,tileIndex+this.maxDigit);
             conditionToAdd=!doneTile.contains(tileTomove);
         }
         else if(currentCoordinate[0] > 0 && MoveDir=='D'){
             tileIndex=currentZero-this.jump;
-            tileTomove=board.substring(tileIndex,tileIndex+this.maxDigit);
+            tileTomove=current.substring(tileIndex,tileIndex+this.maxDigit);
             conditionToAdd=!doneTile.contains(tileTomove);
         }
         else if(currentCoordinate[1] > 0 && MoveDir=='R'){
             tileIndex=currentZero-this.maxDigit;
-            tileTomove=board.substring(tileIndex,currentZero);
+            tileTomove=current.substring(tileIndex,currentZero);
             conditionToAdd=!doneTile.contains(tileTomove);
         }
-        else if(currentCoordinate[1] < bound) {   //MoveDir=='L'
+        else if(currentCoordinate[1] < this.boundRC) {   //MoveDir=='L'
             tileIndex=currentZero+this.maxDigit;
-            tileTomove=board.substring(tileIndex,tileIndex+this.maxDigit);
+            tileTomove=current.substring(tileIndex,tileIndex+this.maxDigit);
             conditionToAdd=!doneTile.contains(tileTomove);
         }
         if(conditionToAdd){
             newZero = tileIndex;
             if(newZero<currentZero){
-                newBoard=board.substring(0,newZero)+this.zeroTile+board.substring(newZero+this.maxDigit,currentZero)+tileTomove+board.substring(currentZero+this.maxDigit,this.numBoardLength);
+                newBoard=current.substring(0,newZero)+this.zeroTile+current.substring(newZero+this.maxDigit,currentZero)+tileTomove+current.substring(currentZero+this.maxDigit,this.numBoardLength);
             }
             else{   //currentZero<newZero
-                newBoard=board.substring(0,currentZero)+tileTomove+board.substring(currentZero+this.maxDigit,newZero)+this.zeroTile+board.substring(newZero+this.maxDigit,this.numBoardLength);
+                newBoard=current.substring(0,currentZero)+tileTomove+current.substring(currentZero+this.maxDigit,newZero)+this.zeroTile+current.substring(newZero+this.maxDigit,this.numBoardLength);
             }
 
             newBoard=StandardStringBuilder(newBoard,newZero);
@@ -157,7 +157,7 @@ public class puzzleSolver6v2 {
                         this.addGate=false;
                         workingPriority=Integer.MAX_VALUE;
                         if(workingIndex<this.boundDBtask){
-                            rebuildHashCloseMap(board);
+                            rebuildHashCloseMap(current);
                             this.tileLeft--;
                             if(this.show){
                                 System.out.println("board:");
@@ -169,7 +169,7 @@ public class puzzleSolver6v2 {
                                 System.out.println("goSolveCol: "+this.goSolveCol);
                                 System.out.println("tile done:|"+this.concernTile[0]+"|");
                                 System.out.println("index of done tile in the string: "+indexOfTileInBoard(newBoard,this.concernTile[0]));
-                                System.out.println("RC of done tile in the board: "+this.indexToRC.get(indexOfTileInBoard(newBoard,this.concernTile[0]))[0]+", "+this.indexToRC.get(indexOfTileInBoard(board,this.concernTile[0]))[1]);
+                                System.out.println("RC of done tile in the board: "+this.indexToRC.get(indexOfTileInBoard(newBoard,this.concernTile[0]))[0]+", "+this.indexToRC.get(indexOfTileInBoard(current,this.concernTile[0]))[1]);
                                 System.out.println("MD of done concern tile: "+ManhattanDis(indexOfTileInBoard(newBoard,this.concernTile[0]),this.tileToIndex.get(this.concernTile[0])));
                                 System.out.println("tile left: "+this.tileLeft);
                                 System.out.println("to do list is empty: "+a.isEmpty());
@@ -219,7 +219,7 @@ public class puzzleSolver6v2 {
                                     this.FinalManhattan=true;
                                     break;
                                 }
-                                tileIndex=indexOfTileInBoard(board,this.concernTile[1]);
+                                tileIndex=indexOfTileInBoard(newBoard,this.concernTile[1]);
                                 targetIndex=this.tileToIndex.get(this.zeroTile);
                                 MD1=ManhattanDis(tileIndex,targetIndex);
                                 if(MD1!=0){
@@ -229,7 +229,7 @@ public class puzzleSolver6v2 {
                                     this.FinalManhattan=false;
                                     break;
                                 }
-                                tileIndex=indexOfTileInBoard(board,this.concernTile[0]);
+                                tileIndex=indexOfTileInBoard(newBoard,this.concernTile[0]);
                                 targetIndex=this.tileToIndex.get(this.concernTile[1]);
                                 MD1=ManhattanDis(tileIndex,targetIndex);
                                 if(MD1==0){
@@ -269,7 +269,7 @@ public class puzzleSolver6v2 {
                         else if(workingIndex==this.boundDBtask){
                             if(this.putLargeDownRight){
                                 a.clear();
-                                rebuildHashCloseMap(board);
+                                rebuildHashCloseMap(current);
                                 this.doneTile.add(this.concernTile[1]);
                                 if(this.show){
 
@@ -292,7 +292,7 @@ public class puzzleSolver6v2 {
                             }
                             else if(this.putLessToCorner){
                                 a.clear();
-                                rebuildHashCloseMap(board);
+                                rebuildHashCloseMap(current);
                                 this.doneTile.add(this.concernTile[0]);
                                 this.doneTile.remove(this.concernTile[1]);
                                 if(this.show){
@@ -320,7 +320,7 @@ public class puzzleSolver6v2 {
                             }
                             else if(this.LargeToLess){
                                 a.clear();
-                                rebuildHashCloseMap(board);
+                                rebuildHashCloseMap(current);
                                 this.doneTile.remove(this.concernTile[0]);
                                 if(this.show){
                                     System.out.println("---------------------------"+"\n");
@@ -343,7 +343,7 @@ public class puzzleSolver6v2 {
                             }
                             else if(this.FinalManhattan){
                                 a.clear();
-                                rebuildHashCloseMap(board);
+                                rebuildHashCloseMap(current);
                                 this.tileLeft-=2;
                                 this.doneTile.add(concernTile[0]);
                                 this.doneTile.add(concernTile[1]);
@@ -403,8 +403,8 @@ public class puzzleSolver6v2 {
                                     strTo2D(newBoard);
                                     System.out.println("tiles done:|"+tileBuffer+"|"+" and "+"|"+this.concernTile[1]+"|");
                                     System.out.println("tile left: "+this.tileLeft);
-                                    System.out.println("MD of first concern tile: "+ManhattanDis(indexOfTileInBoard(board,this.concernTile[0]),this.tileToIndex.get(this.concernTile[0])));
-                                    System.out.println("MD of second concern tile: "+ManhattanDis(indexOfTileInBoard(board,this.concernTile[1]),this.tileToIndex.get(this.concernTile[1])));
+                                    System.out.println("MD of first concern tile: "+ManhattanDis(indexOfTileInBoard(current,this.concernTile[0]),this.tileToIndex.get(this.concernTile[0])));
+                                    System.out.println("MD of second concern tile: "+ManhattanDis(indexOfTileInBoard(current,this.concernTile[1]),this.tileToIndex.get(this.concernTile[1])));
 //                                    System.out.println("done tiles:");
 //                                    for(String k:this.doneTile){
 //                                        System.out.print("|"+k+"| ");
