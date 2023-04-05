@@ -24,6 +24,7 @@ public class puzzleSolver6v2 {
     Queue<String> rowToDoList=new LinkedList<>(),colToDoList=new LinkedList<>();
     HashSet<String> doneTile=new HashSet<>(),nearestRCTile=new HashSet<>();
     String[] concernTile= new String[2];
+    int[] lockTile;
 
     // Constructor
     public puzzleSolver6v2(String input, String output, Boolean showRunningInfo) throws IOException {
@@ -123,22 +124,26 @@ public class puzzleSolver6v2 {
         if((currentCoordinate[0] < this.boundRC) && MoveDir=='U'){
             tileIndex=currentZero+this.jump;
             tileTomove=current.substring(tileIndex,tileIndex+this.maxDigit);
-            conditionToAdd=!doneTile.contains(tileTomove);
+            //conditionToAdd=!doneTile.contains(tileTomove);
+            conditionToAdd=this.lockTile[tileToNum(tileTomove)]==0;
         }
         else if(currentCoordinate[0] > 0 && MoveDir=='D'){
             tileIndex=currentZero-this.jump;
             tileTomove=current.substring(tileIndex,tileIndex+this.maxDigit);
-            conditionToAdd=!doneTile.contains(tileTomove);
+            //conditionToAdd=!doneTile.contains(tileTomove);
+            conditionToAdd=this.lockTile[tileToNum(tileTomove)]==0;
         }
         else if(currentCoordinate[1] > 0 && MoveDir=='R'){
             tileIndex=currentZero-this.maxDigit;
             tileTomove=current.substring(tileIndex,currentZero);
-            conditionToAdd=!doneTile.contains(tileTomove);
+            //conditionToAdd=!doneTile.contains(tileTomove);
+            conditionToAdd=this.lockTile[tileToNum(tileTomove)]==0;
         }
         else if(currentCoordinate[1] < this.boundRC) {   //MoveDir=='L'
             tileIndex=currentZero+this.maxDigit;
             tileTomove=current.substring(tileIndex,tileIndex+this.maxDigit);
-            conditionToAdd=!doneTile.contains(tileTomove);
+            //conditionToAdd=!doneTile.contains(tileTomove);
+            conditionToAdd=this.lockTile[tileToNum(tileTomove)]==0;
         }
         if(conditionToAdd){
             newZero = tileIndex;
@@ -176,7 +181,8 @@ public class puzzleSolver6v2 {
                             }
                             a.clear();
                             workingIndex++;
-                            this.doneTile.add(concernTile[0]);
+                            //this.doneTile.add(concernTile[0]);
+                            this.lockTile[tileToNum(concernTile[0])]=1;
 
                             if(this.show){
                                 System.out.println("A7: ");
@@ -185,24 +191,36 @@ public class puzzleSolver6v2 {
 
                             if(goSolveRow){
                                 this.concernTile[0]=rowToDoList.remove();
-                                while(this.doneTile.contains(this.concernTile[0])){
+//                                while(this.doneTile.contains(this.concernTile[0])){
+//                                    this.concernTile[0]=rowToDoList.remove();
+//                                }
+                                while(this.lockTile[tileToNum(concernTile[0])]==1){
                                     this.concernTile[0]=rowToDoList.remove();
                                 }
                                 if(workingIndex==this.boundDBtask){
                                     this.concernTile[1]=rowToDoList.remove();
-                                    while(this.doneTile.contains(this.concernTile[1])){
+//                                    while(this.doneTile.contains(this.concernTile[1])){
+//                                        this.concernTile[1]=rowToDoList.remove();
+//                                    }
+                                    while(this.lockTile[tileToNum(concernTile[1])]==1){
                                         this.concernTile[1]=rowToDoList.remove();
                                     }
                                 }
                             }
                             else if(goSolveCol){
                                 this.concernTile[0]=colToDoList.remove();
-                                while(this.doneTile.contains(this.concernTile[0])){
+//                                while(this.doneTile.contains(this.concernTile[0])){
+//                                    this.concernTile[0]=colToDoList.remove();
+//                                }
+                                while(this.lockTile[tileToNum(concernTile[0])]==1){
                                     this.concernTile[0]=colToDoList.remove();
                                 }
                                 if(workingIndex==this.boundDBtask){
                                     this.concernTile[1]=colToDoList.remove();
-                                    while(this.doneTile.contains(this.concernTile[1])){
+//                                    while(this.doneTile.contains(this.concernTile[1])){
+//                                        this.concernTile[1]=colToDoList.remove();
+//                                    }
+                                    while(this.lockTile[tileToNum(concernTile[1])]==1){
                                         this.concernTile[1]=colToDoList.remove();
                                     }
                                 }
@@ -270,7 +288,8 @@ public class puzzleSolver6v2 {
                             if(this.putLargeDownRight){
                                 a.clear();
                                 rebuildHashCloseMap(current);
-                                this.doneTile.add(this.concernTile[1]);
+                                //this.doneTile.add(this.concernTile[1]);
+                                this.lockTile[tileToNum(concernTile[1])]=1;
                                 if(this.show){
 
                                     System.out.println("Step1 is done: |"+concernTile[1]+"| has been placed into the bottom right corner");
@@ -293,8 +312,10 @@ public class puzzleSolver6v2 {
                             else if(this.putLessToCorner){
                                 a.clear();
                                 rebuildHashCloseMap(current);
-                                this.doneTile.add(this.concernTile[0]);
-                                this.doneTile.remove(this.concernTile[1]);
+//                                this.doneTile.add(this.concernTile[0]);
+//                                this.doneTile.remove(this.concernTile[1]);
+                                this.lockTile[tileToNum(concernTile[0])]=1;
+                                this.lockTile[tileToNum(concernTile[1])]=0;
                                 if(this.show){
                                     System.out.println("---------------------------"+"\n");
                                     System.out.println("Step2 is done:"+"|"+concernTile[0]+"| "+"has been placed into correct position of "+"|"+concernTile[1]+"|");
@@ -321,7 +342,8 @@ public class puzzleSolver6v2 {
                             else if(this.LargeToLess){
                                 a.clear();
                                 rebuildHashCloseMap(current);
-                                this.doneTile.remove(this.concernTile[0]);
+                                //this.doneTile.remove(this.concernTile[0]);
+                                this.lockTile[tileToNum(concernTile[0])]=0;
                                 if(this.show){
                                     System.out.println("---------------------------"+"\n");
                                     System.out.println("Step3 is done: |"+concernTile[1]+"| "+" has been placed to the right of "+"|"+concernTile[0]+"|");
@@ -345,8 +367,10 @@ public class puzzleSolver6v2 {
                                 a.clear();
                                 rebuildHashCloseMap(current);
                                 this.tileLeft-=2;
-                                this.doneTile.add(concernTile[0]);
-                                this.doneTile.add(concernTile[1]);
+//                                this.doneTile.add(concernTile[0]);
+//                                this.doneTile.add(concernTile[1]);
+                                this.lockTile[tileToNum(concernTile[0])]=1;
+                                this.lockTile[tileToNum(concernTile[1])]=1;
                                 this.putLargeDownRight=false;
                                 this.putLessToCorner=false;
                                 this.LargeToLess=false;
@@ -360,7 +384,10 @@ public class puzzleSolver6v2 {
                                         this.maxFixedCol++;
                                         this.solvedNewC=true;
                                         workingIndex=this.maxFixedCol+1;
-                                        while(this.doneTile.contains(concernTile[0])){
+//                                        while(this.doneTile.contains(concernTile[0])){
+//                                            concernTile[0]=this.rowToDoList.remove();
+//                                        }
+                                        while(this.lockTile[tileToNum(concernTile[0])]==1){
                                             concernTile[0]=this.rowToDoList.remove();
                                         }
                                     }
@@ -370,30 +397,33 @@ public class puzzleSolver6v2 {
                                         this.maxFixedRow++;
                                         this.solvedNewR=true;
                                         workingIndex=this.maxFixedRow+1;
-                                        while(this.doneTile.contains(concernTile[0])){
+//                                        while(this.doneTile.contains(concernTile[0])){
+//                                            concernTile[0]=this.colToDoList.remove();
+//                                        }
+                                        while(this.lockTile[tileToNum(concernTile[0])]==1){
                                             concernTile[0]=this.colToDoList.remove();
                                         }
                                     }
                                 }
-                                if(solvedNewR && solvedNewC){
-                                    solvedNewR=false;
-                                    solvedNewC=false;
-                                    HashSet<String> temp=new HashSet<>();
-                                    for(String tile: this.doneTile){
-                                        if(!this.nearestRCTile.contains(tile)){
-                                            temp.add(tile);
-                                        }
-                                    }
-                                    this.nearestRCTile.clear();
-                                    this.nearestRCTile=temp;
-
-                                }
-                                if(!firstRC){
-                                    this.doneTile.clear();
-                                    this.doneTile=nearestRCTile;
-                                }else{
-                                    firstRC=true;
-                                }
+//                                if(solvedNewR && solvedNewC){
+//                                    solvedNewR=false;
+//                                    solvedNewC=false;
+//                                    HashSet<String> temp=new HashSet<>();
+//                                    for(String tile: this.doneTile){
+//                                        if(!this.nearestRCTile.contains(tile)){
+//                                            temp.add(tile);
+//                                        }
+//                                    }
+//                                    this.nearestRCTile.clear();
+//                                    this.nearestRCTile=temp;
+//
+//                                }
+//                                if(!firstRC){
+//                                    this.doneTile.clear();
+//                                    this.doneTile=nearestRCTile;
+//                                }else{
+//                                    firstRC=true;
+//                                }
 
 
                                 if(this.show){
@@ -754,6 +784,7 @@ public class puzzleSolver6v2 {
         int[][]tempArr=p1.toArray();
         this.dimension = p1.getDimension();
         this.size=this.dimension*this.dimension;
+        this.lockTile=new int[this.size];
         this.maxDigit=((this.size-1)+"").length();
         this.boundRC=this.dimension-1;
         this.jump=this.maxDigit*this.dimension;
