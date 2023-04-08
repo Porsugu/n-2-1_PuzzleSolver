@@ -10,7 +10,7 @@ public class Main {
             statCollector s=new statCollector();
             long start,end;
             String fileName;
-            for(int k=10;k<=40;k++){
+            for(int k=1;k<=140;k++){
                 fileName="board";
                 if(k<10){
                     fileName+=0;

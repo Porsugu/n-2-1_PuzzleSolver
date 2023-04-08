@@ -23,11 +23,11 @@ public class puzzleSolverSubmission {
     private Boolean putLargeDownRight,putLessToCorner,LargeToLess,FinalManhattan,addGate,solved;
     List<String>[] rowTask,colTask;
     Queue<String> rowToDoList=new LinkedList<>(),colToDoList=new LinkedList<>();
-    HashSet<String> doneTile=new HashSet<>(),nearestRCTile=new HashSet<>();
-    String[] concernTile= new String[2];
-
+    private String[] concernTile= new String[2];
+    private int[] lockTile;
+    private PriorityQueue<Integer> scoreQ;
     // Constructor
-    public puzzleSolverSubmission(String input,String ouput) throws BadBoardException, IOException {
+    public puzzleSolverSubmission(String input,String ouput) throws IOException, BadBoardException {
         JustaBitOfInitialSetUp(input);
         //run the search
         String fin = greedy();
@@ -41,30 +41,34 @@ public class puzzleSolverSubmission {
         if(this.solved){
             return this.initStandardBoard;
         }
+        this.scoreQ=new PriorityQueue<>();
         String poped_str = null;
         HashMap<Integer,LinkedList<String>> taskMap=new HashMap<>();
         taskMap.put(workingPriority,new LinkedList<>());
         taskMap.get(workingPriority).add(this.initStandardBoard);
         this.HashClostMap.put(this.initStandardBoard,"S");
+        this.scoreQ.add(workingPriority);
         while(!taskMap.isEmpty()){
-            poped_str=taskMap.get(workingPriority).remove();
+            poped_str=taskMap.get(this.scoreQ.peek()).remove();
+            //poped_str=taskMap.get(workingPriority).remove();
             if(this.solved){
                 break;
             }
-            if(taskMap.get(workingPriority).isEmpty()){
-                taskMap.remove(workingPriority);
+            if(taskMap.get(this.scoreQ.peek()).isEmpty()){
+                taskMap.remove(this.scoreQ.peek());
+                this.scoreQ.remove();
             }
             this.addGate=true;
             addNeighbour(poped_str,taskMap);
-            if(!taskMap.containsKey(workingPriority)){
-                workingPriority++;
-                while(true){
-                    if(taskMap.containsKey(workingPriority)){
-                        break;
-                    }
-                    workingPriority++;
-                }
-            }
+//            if(!taskMap.containsKey(workingPriority)){
+//                workingPriority++;
+//                while(true){
+//                    if(taskMap.containsKey(workingPriority)){
+//                        break;
+//                    }
+//                    workingPriority++;
+//                }
+//            }
         }
         return poped_str;
     }
@@ -82,7 +86,10 @@ public class puzzleSolverSubmission {
         if(!this.addGate){
             return;
         }
-        boolean conditionToAdd=false;
+//        if(workingIndex<this.boundDBtask && !doneTileAreDone(current)){
+//            return;
+//        }
+        Boolean conditionToAdd=false;
         int tileIndex=0;
         int currentZero = Integer.parseInt(current.substring(this.numBoardLength)),
                 newZero;
@@ -91,25 +98,24 @@ public class puzzleSolverSubmission {
         if((currentCoordinate[0] < this.boundRC) && MoveDir=='U'){
             tileIndex=currentZero+this.jump;
             tileTomove=current.substring(tileIndex,tileIndex+2);
-            conditionToAdd=!doneTile.contains(tileTomove);
+            conditionToAdd=this.lockTile[tileToNum(tileTomove)]==0;
         }
         else if(currentCoordinate[0] > 0 && MoveDir=='D'){
             tileIndex=currentZero-this.jump;
             tileTomove=current.substring(tileIndex,tileIndex+2);
-            conditionToAdd=!doneTile.contains(tileTomove);
+            conditionToAdd=this.lockTile[tileToNum(tileTomove)]==0;
         }
         else if(currentCoordinate[1] > 0 && MoveDir=='R'){
             tileIndex=currentZero-2;
             tileTomove=current.substring(tileIndex,currentZero);
-            conditionToAdd=!doneTile.contains(tileTomove);
+            conditionToAdd=this.lockTile[tileToNum(tileTomove)]==0;
         }
         else if(currentCoordinate[1] < this.boundRC) {   //MoveDir=='L'
             tileIndex=currentZero+2;
             tileTomove=current.substring(tileIndex,tileIndex+2);
-            conditionToAdd=!doneTile.contains(tileTomove);
+            conditionToAdd=this.lockTile[tileToNum(tileTomove)]==0;
         }
         if(conditionToAdd){
-            //System.out.println("added");
             newZero = tileIndex;
             if(newZero<currentZero){
                 newBoard=current.substring(0,newZero)+" 0"+current.substring(newZero+2,currentZero)+tileTomove+current.substring(currentZero+2,this.numBoardLength);
@@ -117,6 +123,7 @@ public class puzzleSolverSubmission {
             else{   //currentZero<newZero
                 newBoard=current.substring(0,currentZero)+tileTomove+current.substring(currentZero+2,newZero)+" 0"+current.substring(newZero+2,this.numBoardLength);
             }
+
             newBoard=StandardStringBuilder(newBoard,newZero);
             if(!this.HashClostMap.containsKey(newBoard)){
                 int temp_Priority=heuristicFunction(newBoard);
@@ -128,40 +135,34 @@ public class puzzleSolverSubmission {
                             rebuildHashCloseMap(current);
                             this.tileLeft--;
                             a.clear();
+                            this.scoreQ.clear();
                             workingIndex++;
-                            this.doneTile.add(concernTile[0]);
+                            this.lockTile[tileToNum(concernTile[0])]=1;
                             if(goSolveRow){
                                 this.concernTile[0]=rowToDoList.remove();
-                                while(this.doneTile.contains(this.concernTile[0])){
+                                while(this.lockTile[tileToNum(concernTile[0])]==1){
                                     this.concernTile[0]=rowToDoList.remove();
                                 }
                                 if(workingIndex==this.boundDBtask){
                                     this.concernTile[1]=rowToDoList.remove();
-                                    while(this.doneTile.contains(this.concernTile[1])){
+                                    while(this.lockTile[tileToNum(concernTile[1])]==1){
                                         this.concernTile[1]=rowToDoList.remove();
                                     }
-                                    this.putLargeDownRight=true;
-                                    this.putLessToCorner=false;
-                                    this.LargeToLess=false;
-                                    this.FinalManhattan=false;
                                 }
                             }
                             else if(goSolveCol){
                                 this.concernTile[0]=colToDoList.remove();
-                                while(this.doneTile.contains(this.concernTile[0])){
+                                while(this.lockTile[tileToNum(concernTile[0])]==1){
                                     this.concernTile[0]=colToDoList.remove();
                                 }
                                 if(workingIndex==this.boundDBtask){
                                     this.concernTile[1]=colToDoList.remove();
-                                    while(this.doneTile.contains(this.concernTile[1])){
+                                    while(this.lockTile[tileToNum(concernTile[1])]==1){
                                         this.concernTile[1]=colToDoList.remove();
                                     }
                                 }
-                                this.putLargeDownRight=true;
-                                this.putLessToCorner=false;
-                                this.LargeToLess=false;
-                                this.FinalManhattan=false;
                             }
+
                             while (workingIndex==this.boundDBtask){
                                 int MD1=ManhattanDis(indexOfTileInBoard(newBoard,this.concernTile[0]),this.tileToIndex.get(this.concernTile[0]));
                                 int MD2=ManhattanDis(indexOfTileInBoard(newBoard,this.concernTile[1]),this.tileToIndex.get(this.concernTile[1]));
@@ -203,8 +204,11 @@ public class puzzleSolverSubmission {
                         else if(workingIndex==this.boundDBtask){
                             if(this.putLargeDownRight){
                                 a.clear();
+                                this.scoreQ.clear();
                                 rebuildHashCloseMap(current);
-                                this.doneTile.add(this.concernTile[1]);
+                                this.lockTile[tileToNum(concernTile[1])]=1;
+
+
                                 this.putLargeDownRight=false;
                                 this.putLessToCorner=true;
                                 this.LargeToLess=false;
@@ -212,9 +216,10 @@ public class puzzleSolverSubmission {
                             }
                             else if(this.putLessToCorner){
                                 a.clear();
+                                this.scoreQ.clear();
                                 rebuildHashCloseMap(current);
-                                this.doneTile.add(this.concernTile[0]);
-                                this.doneTile.remove(this.concernTile[1]);
+                                this.lockTile[tileToNum(concernTile[0])]=1;
+                                this.lockTile[tileToNum(concernTile[1])]=0;
                                 this.putLargeDownRight=false;
                                 this.putLessToCorner=false;
                                 this.LargeToLess=true;
@@ -222,19 +227,22 @@ public class puzzleSolverSubmission {
                             }
                             else if(this.LargeToLess){
                                 a.clear();
+                                this.scoreQ.clear();
                                 rebuildHashCloseMap(current);
-                                this.doneTile.remove(this.concernTile[0]);
+                                this.lockTile[tileToNum(concernTile[0])]=0;
                                 this.putLargeDownRight=false;
                                 this.putLessToCorner=false;
                                 this.LargeToLess=false;
                                 this.FinalManhattan=true;
+
                             }
                             else if(this.FinalManhattan){
                                 a.clear();
+                                this.scoreQ.clear();
                                 rebuildHashCloseMap(current);
                                 this.tileLeft-=2;
-                                this.doneTile.add(concernTile[0]);
-                                this.doneTile.add(concernTile[1]);
+                                this.lockTile[tileToNum(concernTile[0])]=1;
+                                this.lockTile[tileToNum(concernTile[1])]=1;
                                 this.putLargeDownRight=false;
                                 this.putLessToCorner=false;
                                 this.LargeToLess=false;
@@ -244,8 +252,9 @@ public class puzzleSolverSubmission {
                                         goSolveCol=false;
                                         goSolveRow=true;
                                         this.maxFixedCol++;
+                                        this.solvedNewC=true;
                                         workingIndex=this.maxFixedCol+1;
-                                        while(this.doneTile.contains(concernTile[0])){
+                                        while(this.lockTile[tileToNum(concernTile[0])]==1){
                                             concernTile[0]=this.rowToDoList.remove();
                                         }
                                     }
@@ -253,30 +262,12 @@ public class puzzleSolverSubmission {
                                         goSolveRow=false;
                                         goSolveCol=true;
                                         this.maxFixedRow++;
+                                        this.solvedNewR=true;
                                         workingIndex=this.maxFixedRow+1;
-                                        while(this.doneTile.contains(concernTile[0])){
+                                        while(this.lockTile[tileToNum(concernTile[0])]==1){
                                             concernTile[0]=this.colToDoList.remove();
                                         }
                                     }
-                                }
-                                if(solvedNewR && solvedNewC){
-                                    solvedNewR=false;
-                                    solvedNewC=false;
-                                    HashSet<String> temp=new HashSet<>();
-                                    for(String tile: this.doneTile){
-                                        if(!this.nearestRCTile.contains(tile)){
-                                            temp.add(tile);
-                                        }
-                                    }
-                                    this.nearestRCTile.clear();
-                                    this.nearestRCTile=temp;
-
-                                }
-                                if(!firstRC){
-                                    this.doneTile.clear();
-                                    this.doneTile=nearestRCTile;
-                                }else{
-                                    firstRC=true;
                                 }
                             }
                         }
@@ -291,10 +282,11 @@ public class puzzleSolverSubmission {
                 }
                 if(!a.containsKey(temp_Priority)){
                     a.put(temp_Priority,new LinkedList<>());
+                    this.scoreQ.add(temp_Priority);
                 }
-                if(temp_Priority<workingPriority){
-                    workingPriority=temp_Priority;
-                }
+//                if(temp_Priority<workingPriority){
+//                    workingPriority=temp_Priority;
+//                }
                 a.get(temp_Priority).add(newBoard);
                 this.HashClostMap.put(newBoard,current);
             }
@@ -328,7 +320,6 @@ public class puzzleSolverSubmission {
                 else{
                     score=0;
                 }
-
                 //A slower pushing heuristic but also works :)
                 //score=ManhattanDis(indexOfTileInBoard(board,this.concernTile[0]),this.concernTile[0]);
             }
@@ -559,6 +550,7 @@ public class puzzleSolverSubmission {
         this.size=this.dimension*this.dimension;
         this.tileLeft=this.size;
         this.maxManhattan=this.boundRC*2;
+        this.lockTile=new int[size];
         GenCorrectAns();//put it after this.dimension
         String endState = tools.sqArrtoString(ansArr);
         endState +=(this.size-1)*2;
