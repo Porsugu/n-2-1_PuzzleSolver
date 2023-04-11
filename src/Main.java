@@ -10,7 +10,7 @@ public class Main {
             statCollector s=new statCollector();
             long start,end;
             String fileName;
-            for(int k=1;k<=140;k++){
+            for(int k=1;k<=40;k++){
                 fileName="board";
                 if(k<10){
                     fileName+=0;
@@ -38,10 +38,5 @@ public class Main {
             System.out.println("Num of steps: "+ solver.getStepUsed());
             System.out.println("runtime: "+(end-start)/1000F +" sec");
         }
-//        String board="board15.txt";
-//        long start=System.currentTimeMillis();
-//        puzzleSolver5 solver=new puzzleSolver5(board);
-//        long end=System.currentTimeMillis();
-//        System.out.println("runtime: "+(end-start)/1000F +" sec");
     }
 }

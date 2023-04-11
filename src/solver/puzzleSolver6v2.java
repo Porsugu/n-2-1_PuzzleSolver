@@ -17,7 +17,7 @@ public class puzzleSolver6v2 {
     public HashMap<String,String> HashClostMap=new HashMap<>();
     public HashMap<Integer,int[]> indexToRC=new HashMap<>();
     public HashMap<Integer,HashSet<String>> rowToTile=new HashMap<>(),colToTile=new HashMap<>();
-    private int dimension,boundRC,size,workingPriority,jump,numBoardLength,maxFixedRow,maxFixedCol,boundDBtask,workingIndex,tileLeft,stepUsed,maxManhattan,maxDigit;
+    private int dimension,boundRC,size,workingPriority,jump,numBoardLength,maxFixedRow,maxFixedCol,boundDBtask,workingIndex,tileLeft,stepUsed,maxManhattan,maxDigit,minScore;
     private Boolean goSolveRow,goSolveCol,show,solvedNewR,solvedNewC,firstRC;
     private Boolean putLargeDownRight,putLessToCorner,LargeToLess,FinalManhattan,addGate,solved;
     List<String>[] rowTask,colTask;
@@ -26,6 +26,8 @@ public class puzzleSolver6v2 {
     String[] concernTile= new String[2];
     int[] lockTile;
     private PriorityQueue<Integer> scoreQ;
+    private ArrayList<Integer> scoreA;
+    private LinkedList<Integer> scoreL;
 
     // Constructor
     public puzzleSolver6v2(String input, String output, Boolean showRunningInfo) throws IOException {
@@ -39,21 +41,33 @@ public class puzzleSolver6v2 {
     //Method set of searching
     //Maybe it is greedy,but idk
     private String A_star(){
-        this.scoreQ=new PriorityQueue<>();
+//        this.minScore=workingPriority;
+//        this.scoreQ=new PriorityQueue<>();
+//        this.scoreA=new ArrayList<>();
+        this.scoreL=new LinkedList<>();
         String poped_str = null;
         HashMap<Integer,LinkedList<String>> taskMap=new HashMap<>();
         taskMap.put(workingPriority,new LinkedList<>());
         taskMap.get(workingPriority).add(this.initStandardBoard);
         this.HashClostMap.put(this.initStandardBoard,"S");
-        this.scoreQ.add(workingPriority);
+        //this.scoreQ.add(workingPriority);
+        //this.scoreA.add(workingPriority);
+        this.scoreL.add(workingPriority);
         while(!taskMap.isEmpty()){
-            poped_str=taskMap.get(this.scoreQ.peek()).remove();
+            //poped_str=taskMap.get(this.scoreQ.peek()).remove();
+            //poped_str=taskMap.get(this.scoreA.get(0)).remove();
+            poped_str=taskMap.get(this.scoreL.peek()).remove();
             if(this.solved){
                 break;
             }
-            if(taskMap.get(this.scoreQ.peek()).isEmpty()){
-                taskMap.remove(this.scoreQ.peek());
-                this.scoreQ.remove();
+            //this.scoreQ.peek()
+            //this.scoreA.get(0)
+            if(taskMap.get(this.scoreL.peek()).isEmpty()){
+                taskMap.remove(this.scoreL.peek());
+                //this.scoreQ.remove();
+                //this.scoreA.remove(0);
+                this.scoreL.remove();
+                Collections.sort(this.scoreL);
             }
             this.addGate=true;
             addNeighbour(poped_str,taskMap);
@@ -158,12 +172,15 @@ public class puzzleSolver6v2 {
             if(!this.HashClostMap.containsKey(newBoard)){
                 int temp_Priority=heuristicFunction(newBoard,false);
                 if(temp_Priority==0){
+                    //this.minScore=Integer.MAX_VALUE;
                     if(this.tileLeft>9){
                         this.addGate=false;
-                        workingPriority=Integer.MAX_VALUE;
+                        //workingPriority=Integer.MAX_VALUE;
                         if(workingIndex<this.boundDBtask){
                             a.clear();
-                            this.scoreQ.clear();
+                            //this.scoreQ.clear();
+                            //this.scoreA.clear();
+                            this.scoreL.clear();
                             rebuildHashCloseMap(current);
                             this.tileLeft--;
                             if(this.show){
@@ -288,7 +305,9 @@ public class puzzleSolver6v2 {
                         else if(workingIndex==this.boundDBtask){
                             if(this.putLargeDownRight){
                                 a.clear();
-                                this.scoreQ.clear();
+                                //this.scoreQ.clear();
+                                //this.scoreA.clear();
+                                this.scoreL.clear();
                                 rebuildHashCloseMap(current);
                                 //this.doneTile.add(this.concernTile[1]);
                                 this.lockTile[tileToNum(concernTile[1])]=1;
@@ -313,7 +332,9 @@ public class puzzleSolver6v2 {
                             }
                             else if(this.putLessToCorner){
                                 a.clear();
-                                this.scoreQ.clear();
+                                //this.scoreQ.clear();
+                                //this.scoreA.clear();
+                                this.scoreL.clear();
                                 rebuildHashCloseMap(current);
 //                                this.doneTile.add(this.concernTile[0]);
 //                                this.doneTile.remove(this.concernTile[1]);
@@ -344,7 +365,9 @@ public class puzzleSolver6v2 {
                             }
                             else if(this.LargeToLess){
                                 a.clear();
-                                this.scoreQ.clear();
+                                //this.scoreQ.clear();
+                                //this.scoreA.clear();
+                                this.scoreL.clear();
                                 rebuildHashCloseMap(current);
                                 //this.doneTile.remove(this.concernTile[0]);
                                 this.lockTile[tileToNum(concernTile[0])]=0;
@@ -369,7 +392,9 @@ public class puzzleSolver6v2 {
                             }
                             else if(this.FinalManhattan){
                                 a.clear();
-                                this.scoreQ.clear();
+                                //this.scoreQ.clear();
+                                //this.scoreA.clear();
+                                this.scoreL.clear();
                                 rebuildHashCloseMap(current);
                                 this.tileLeft-=2;
 //                                this.doneTile.add(concernTile[0]);
@@ -459,7 +484,15 @@ public class puzzleSolver6v2 {
                 }
                 if(!a.containsKey(temp_Priority)){
                     a.put(temp_Priority,new LinkedList<>());
-                    this.scoreQ.add(temp_Priority);
+                    //this.scoreQ.add(temp_Priority);
+                    //this.scoreA.add(temp_Priority);
+                    if(!this.scoreL.isEmpty() && temp_Priority<this.scoreL.peek()){
+                        this.scoreL.addFirst(temp_Priority);
+                        //Collections.sort(this.scoreA);
+                    }
+                    else{
+                        this.scoreL.add(temp_Priority);
+                    }
                 }
                 a.get(temp_Priority).add(newBoard);
                 this.HashClostMap.put(newBoard,current);
